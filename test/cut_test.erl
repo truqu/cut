@@ -15,7 +15,7 @@
 %% All rights reserved.
 %%
 
--module(erlando_test).
+-module(cut_test).
 -export([all_test_/0]).
 
 all_test_() ->
