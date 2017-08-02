@@ -1,6 +1,6 @@
 {application, cut,
  [{description, "Syntax extensions that adds support for cuts Erlang"},
-  {vsn, git},
+  {vsn, "1.0.0"},
   {modules, []},
   {registered, []},
   {applications, []}
