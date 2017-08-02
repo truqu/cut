@@ -1,0 +1,11 @@
+{application, erlando,
+ [{description, "Syntax extensions for Erlang"},
+  {vsn, git},
+  {modules, []},
+  {registered, []},
+  {applications, []},
+
+  {maintainers, ["Yakov Kozlov"]},
+  {licenses, ["MPL-1.1"]},
+  {links, [{"Github", "https://github.com/egobrain/erlando"}]}
+ ]}.
