@@ -3,5 +3,5 @@
   {vsn, git},
   {modules, []},
   {registered, []},
-  {applications, []},
+  {applications, []}
  ]}.
