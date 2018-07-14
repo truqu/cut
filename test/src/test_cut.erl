@@ -17,7 +17,20 @@
 -module(test_cut).
 -compile({parse_transform, cut}).
 
--compile(export_all).
+-export([test_cut/0,
+         test_cut_nested/0,
+         test_cut_op/0,
+         test_cut_unary_op/0,
+         test_cut_tuple/0,
+         test_cut_record/0,
+         test_cut_record_nested/0,
+         test_cut_binary/0,
+         test_cut_list/0,
+         test_cut_case/0,
+         test_cut_comprehensions/0,
+         foo/5,
+         test/0
+        ]).
 
 -record(r, { f1 = false,
              f2 = wibble,
