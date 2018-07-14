@@ -3,5 +3,7 @@
   {vsn, "1.0.0"},
   {modules, []},
   {registered, []},
-  {applications, []}
+  {applications, []},
+  {licenses, ["https://github.com/truqu/cut/blob/develop/LICENSE"]},
+  {links, [{"GitHub", "https://github.com/truqu/cut"}]}
  ]}.
