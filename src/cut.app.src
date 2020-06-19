@@ -1,9 +1,9 @@
 {application, cut,
  [{description, "Syntax extensions that adds support for cuts Erlang"},
-  {vsn, "1.0.1"},
+  {vsn, "1.0.2"},
   {modules, []},
   {registered, []},
-  {applications, []},
+  {applications, [kernel, stdlib]},
   {licenses, ["https://github.com/truqu/cut/blob/develop/LICENSE"]},
   {links, [{"GitHub", "https://github.com/truqu/cut"}]}
  ]}.
