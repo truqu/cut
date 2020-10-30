@@ -352,6 +352,8 @@ expr({'fun', Line, Body}) ->
         {function, M, F, A} -> %% R10B-6: fun M:F/A.
             {'fun', Line, {function, M, F, A}}
     end;
+expr({named_fun, Line, Name, Body}) ->
+  {named_fun, Line, Name, icr_clauses(Body)};
 expr({call, Line, F0, As0}) ->
     %% N.B. If F an atom then call to local function or BIF, if F a
     %% remote structure (see below) then call to other module,
@@ -427,7 +429,7 @@ expr_list([E0|Es]) ->
     E1 = expr(E0),
     [E1|expr_list(Es)];
 expr_list([]) -> [].
- 
+
 %% -type map_fields([MapField]) -> [MapField].
 map_fields([{map_field_assoc, Line, ExpK0, ExpV0}|Fs]) ->
     ExpK1 = expr(ExpK0),
