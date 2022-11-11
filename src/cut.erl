@@ -378,6 +378,12 @@ expr({'catch', Line, E0}) ->
     %% See 'try' above for reasoning around no cuts here.
     E1 = expr(E0),
     {'catch', Line, E1};
+expr({'maybe', Line, Es}) ->
+    {'maybe', Line, exprs(Es)};
+expr({'maybe', Line, Es0, {else, ElseLine, Cs0}}) ->
+    Es1 = exprs(Es0),
+    Cs1 = icr_clauses(Cs0),
+    {'maybe', Line, Es1, {else, ElseLine, Cs1}};
 expr({'query', Line, E0}) ->
     %% lc expression
     E1 = expr(E0),
@@ -386,6 +392,10 @@ expr({match, Line, P0, E0}) ->
     E1 = expr(E0),
     P1 = pattern(P0),
     {match, Line, P1, E1};
+expr({'maybe_match', Line, P0, E0}) ->
+    E1 = expr(E0),
+    P1 = pattern(P0),
+    {'maybe_match', Line, P1, E1};
 expr({bin, Line, Fs}) ->
     Fs1 = pattern_grp(Fs),
     case find_binary_cut_vars(Fs1) of
