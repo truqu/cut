@@ -402,10 +402,10 @@ expr({'catch', Line, E0}) ->
     {'catch', Line, E1};
 expr({'maybe', Line, Es}) ->
     {'maybe', Line, exprs(Es)};
-expr({'maybe', Line, Es0, {else, ElseLine, Cs0}}) ->
+expr({'maybe', Line, Es0, {'else', ElseLine, Cs0}}) ->
     Es1 = exprs(Es0),
     Cs1 = icr_clauses(Cs0),
-    {'maybe', Line, Es1, {else, ElseLine, Cs1}};
+    {'maybe', Line, Es1, {'else', ElseLine, Cs1}};
 expr({'query', Line, E0}) ->
     %% lc expression
     E1 = expr(E0),
