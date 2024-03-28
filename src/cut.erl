@@ -100,6 +100,11 @@ pattern({tuple,Line,Ps0}) ->
 pattern({map, Line, Fields0}) ->
     Fields1 = map_fields(Fields0),
     {map, Line, Fields1};
+%% OTP 26.0, EEP 58: Map comprehensions
+pattern({map_field_exact,Line,ExpK0,ExpV0}) ->
+    ExpK1 = expr(ExpK0),
+    ExpV1 = expr(ExpV0),
+    {map_field_exact,Line,ExpK1,ExpV1};
 %%pattern({struct,Line,Tag,Ps0}) ->
 %%    Ps1 = pattern_list(Ps0),
 %%    {struct,Line,Tag,Ps1};
@@ -207,7 +212,7 @@ expr({lc, Line, E0, Qs0}) ->
     %% Note that it is nonsensical to allow a cut on E0, as in all
     %% useful cases, it is defined by some expression of Qs0. Cuts are
     %% allowed only on generators of Qs0.
-    Qs1 = lc_bc_quals(Qs0),
+    Qs1 = lc_bc_mc_quals(Qs0),
     E1 = expr(E0),
     Qs = find_comprehension_cut_vars(Qs1),
     case Qs of
@@ -219,7 +224,7 @@ expr({lc, Line, E0, Qs0}) ->
     end;
 expr({bc, Line, E0, Qs0}) ->
     %% Notes for {lc,...} above apply here too.
-    Qs1 = lc_bc_quals(Qs0),
+    Qs1 = lc_bc_mc_quals(Qs0),
     E1 = expr(E0),
     Qs = find_comprehension_cut_vars(Qs1),
     case Qs of
@@ -228,6 +233,18 @@ expr({bc, Line, E0, Qs0}) ->
         {Pattern, Qs2} ->
             {'fun', Line, {clauses, [{clause, Line, Pattern, [],
                                       [{bc, Line, E1, Qs2}]}]}}
+    end;
+expr({mc, Line, E0, Qs0}) ->
+    %% Notes for {lc,...} above apply here too.
+    Qs1 = lc_bc_mc_quals(Qs0),
+    E1 = expr(E0),
+    Qs = find_comprehension_cut_vars(Qs1),
+    case Qs of
+        {[], _Qs2} ->
+            {mc, Line, E1, Qs1};
+        {Pattern, Qs2} ->
+            {'fun', Line, {clauses, [{clause, Line, Pattern, [],
+                                      [{mc, Line, E1, Qs2}]}]}}
     end;
 expr({tuple, Line, Es0}) ->
     Es1 = expr_list(Es0),
@@ -258,6 +275,11 @@ expr({map, Line, Expr0, Fields0}) ->
             {'fun', Line, {clauses, [{clause, Line, Pattern1++Pattern2, [],
                                       [{map, Line, Expr2, Fields2}]}]}}
     end;
+%% OTP 26.0, EEP 58: Map comprehensions
+expr({map_field_assoc, Line, ExpK0, ExpV0}) ->
+    ExpK1 = expr(ExpK0),
+    ExpV1 = expr(ExpV0),
+    {map_field_assoc, Line, ExpK1, ExpV1};
 %%expr({struct,Line,Tag,Es0}) ->
 %%    Es1 = pattern_list(Es0),
 %%    {struct,Line,Tag,Es1};
@@ -378,6 +400,12 @@ expr({'catch', Line, E0}) ->
     %% See 'try' above for reasoning around no cuts here.
     E1 = expr(E0),
     {'catch', Line, E1};
+expr({'maybe', Line, Es}) ->
+    {'maybe', Line, exprs(Es)};
+expr({'maybe', Line, Es0, {'else', ElseLine, Cs0}}) ->
+    Es1 = exprs(Es0),
+    Cs1 = icr_clauses(Cs0),
+    {'maybe', Line, Es1, {'else', ElseLine, Cs1}};
 expr({'query', Line, E0}) ->
     %% lc expression
     E1 = expr(E0),
@@ -386,6 +414,10 @@ expr({match, Line, P0, E0}) ->
     E1 = expr(E0),
     P1 = pattern(P0),
     {match, Line, P1, E1};
+expr({'maybe_match', Line, P0, E0}) ->
+    E1 = expr(E0),
+    P1 = pattern(P0),
+    {'maybe_match', Line, P1, E1};
 expr({bin, Line, Fs}) ->
     Fs1 = pattern_grp(Fs),
     case find_binary_cut_vars(Fs1) of
@@ -469,21 +501,25 @@ icr_clauses([C0|Cs]) ->
     [C1|icr_clauses(Cs)];
 icr_clauses([]) -> [].
 
-%% -type lc_bc_quals([Qualifier]) -> [Qualifier].
+%% -type lc_bc_mc_quals([Qualifier]) -> [Qualifier].
 %%  Allow filters to be both guard tests and general expressions.
 
-lc_bc_quals([{generate, Line, P0, E0}|Qs]) ->
+lc_bc_mc_quals([{generate, Line, P0, E0}|Qs]) ->
     E1 = expr(E0),
     P1 = pattern(P0),
-    [{generate, Line, P1, E1}|lc_bc_quals(Qs)];
-lc_bc_quals([{b_generate, Line, P0, E0}|Qs]) ->
+    [{generate, Line, P1, E1}|lc_bc_mc_quals(Qs)];
+lc_bc_mc_quals([{b_generate, Line, P0, E0}|Qs]) ->
     E1 = expr(E0),
     P1 = pattern(P0),
-    [{b_generate, Line, P1, E1}|lc_bc_quals(Qs)];
-lc_bc_quals([E0|Qs]) ->
+    [{b_generate, Line, P1, E1}|lc_bc_mc_quals(Qs)];
+lc_bc_mc_quals([{m_generate, Line, P0, E0}|Qs]) ->
     E1 = expr(E0),
-    [E1|lc_bc_quals(Qs)];
-lc_bc_quals([]) -> [].
+    P1 = pattern(P0),
+    [{m_generate, Line, P1, E1}|lc_bc_mc_quals(Qs)];
+lc_bc_mc_quals([E0|Qs]) ->
+    E1 = expr(E0),
+    [E1|lc_bc_mc_quals(Qs)];
+lc_bc_mc_quals([]) -> [].
 
 %% -type fun_clauses([Clause]) -> [Clause].
 
